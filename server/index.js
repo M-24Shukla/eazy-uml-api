@@ -21,7 +21,7 @@ import {
 } from './routes/workspace.js';
 
 const app = express();
-const port = Number(process.env.API_PORT || 8787);
+const port = Number(process.env.PORT || process.env.API_PORT || 8787);
 
 app.use(requestLogger);
 app.use(
