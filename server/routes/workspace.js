@@ -51,6 +51,8 @@ const normalizeText = (value) => String(value || '').trim();
 const normalizeEmail = (value) => normalizeText(value).toLowerCase();
 const createToken = (prefix) => `${prefix}-${crypto.randomUUID()}`;
 const tokenPrefix = (value) => normalizeText(value).slice(0, 12);
+const isDuplicateArtifactNameError = (error) =>
+  error?.code === '23505' && error?.message?.includes('artifacts_project_name_unique');
 
 const buildLimitError = (plan, limitName, limit, currentUsage) => ({
   error: 'PLAN_LIMIT_REACHED',
@@ -382,7 +384,23 @@ export const saveArtifact = async (request, response, next) => {
 
     const { data, error } = await query.select().single();
 
-    if (error) throw error;
+    if (error) {
+      if (isDuplicateArtifactNameError(error)) {
+        logger.warn('artifact.save.duplicate_name', {
+          artifactId: request.body.artifactId,
+          name,
+          projectId: request.body.projectId,
+          requestId: request.id,
+          userId: appUser.id,
+        });
+        const duplicateName = new Error('A UML file with this name already exists in the project.');
+        duplicateName.status = 409;
+        duplicateName.code = 'DUPLICATE_ARTIFACT_NAME';
+        throw duplicateName;
+      }
+
+      throw error;
+    }
 
     logger.info('artifact.save.success', {
       artifactId: data.id,
