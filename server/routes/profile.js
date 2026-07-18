@@ -1,5 +1,6 @@
 import { clerkClient } from '@clerk/express';
 import { requireSupabase } from '../db/supabase.js';
+import { logger } from '../logger.js';
 
 const mapUserProfile = (row) => ({
   id: row.id,
@@ -19,7 +20,16 @@ export const ensureUserProfile = async (request, response, next) => {
     const clerkUser = await clerkClient.users.getUser(request.auth.userId);
     const email = clerkUser.primaryEmailAddress?.emailAddress;
 
+    logger.info('profile.sync.start', {
+      clerkUserId: request.auth.userId,
+      requestId: request.id,
+    });
+
     if (!email) {
+      logger.warn('profile.sync.primary_email_missing', {
+        clerkUserId: request.auth.userId,
+        requestId: request.id,
+      });
       response.status(400).json({
         error: 'PRIMARY_EMAIL_REQUIRED',
         message: 'A verified primary email is required to create a profile.',
@@ -28,7 +38,7 @@ export const ensureUserProfile = async (request, response, next) => {
     }
 
     const { data, error } = await db
-      .from('app_users')
+      .from('eu_app_users')
       .upsert(
         {
           clerk_user_id: clerkUser.id,
@@ -46,6 +56,12 @@ export const ensureUserProfile = async (request, response, next) => {
       throw error;
     }
 
+    logger.info('profile.sync.success', {
+      appUserId: data.id,
+      clerkUserId: request.auth.userId,
+      requestId: request.id,
+    });
+
     response.json({ user: mapUserProfile(data) });
   } catch (error) {
     next(error);
@@ -57,7 +73,7 @@ export const getUserProfile = async (request, response, next) => {
     const db = requireSupabase();
 
     const { data, error } = await db
-      .from('app_users')
+      .from('eu_app_users')
       .select()
       .eq('clerk_user_id', request.auth.userId)
       .maybeSingle();
@@ -67,12 +83,22 @@ export const getUserProfile = async (request, response, next) => {
     }
 
     if (!data) {
+      logger.warn('profile.get.not_found', {
+        clerkUserId: request.auth.userId,
+        requestId: request.id,
+      });
       response.status(404).json({
         error: 'PROFILE_NOT_FOUND',
         message: 'User profile has not been synced yet.',
       });
       return;
     }
+
+    logger.info('profile.get.success', {
+      appUserId: data.id,
+      clerkUserId: request.auth.userId,
+      requestId: request.id,
+    });
 
     response.json({ user: mapUserProfile(data) });
   } catch (error) {
@@ -86,6 +112,10 @@ export const updateUserProfile = async (request, response, next) => {
     const displayName = String(request.body.displayName || '').trim();
 
     if (!displayName) {
+      logger.warn('profile.update.invalid_display_name', {
+        clerkUserId: request.auth.userId,
+        requestId: request.id,
+      });
       response.status(400).json({
         error: 'DISPLAY_NAME_REQUIRED',
         message: 'Display name is required.',
@@ -94,7 +124,7 @@ export const updateUserProfile = async (request, response, next) => {
     }
 
     const { data, error } = await db
-      .from('app_users')
+      .from('eu_app_users')
       .update({ display_name: displayName })
       .eq('clerk_user_id', request.auth.userId)
       .select()
@@ -103,6 +133,12 @@ export const updateUserProfile = async (request, response, next) => {
     if (error) {
       throw error;
     }
+
+    logger.info('profile.update.success', {
+      appUserId: data.id,
+      clerkUserId: request.auth.userId,
+      requestId: request.id,
+    });
 
     response.json({ user: mapUserProfile(data) });
   } catch (error) {

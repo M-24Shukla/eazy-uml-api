@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { requireSupabase } from '../db/supabase.js';
 
-const tables = ['app_users', 'projects', 'artifacts', 'project_access_grants'];
+const tables = ['eu_app_users', 'eu_projects', 'eu_artifacts', 'eu_project_access_grants'];
 
 const db = requireSupabase();
 
