@@ -1,5 +1,15 @@
 import crypto from 'node:crypto';
 
+const levels = {
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+};
+
+const configuredLevel = process.env.LOG_LEVEL?.toLowerCase() || 'info';
+const activeLevel = levels[configuredLevel] ?? levels.info;
+
 const format = (level, message, fields = {}) => {
   const entry = {
     level,
@@ -11,10 +21,25 @@ const format = (level, message, fields = {}) => {
   return JSON.stringify(entry);
 };
 
+const shouldLog = (level) => levels[level] >= activeLevel;
+
 export const logger = {
+  debug: (message, fields) => {
+    if (shouldLog('debug')) {
+      console.debug(format('debug', message, fields));
+    }
+  },
   error: (message, fields) => console.error(format('error', message, fields)),
-  info: (message, fields) => console.log(format('info', message, fields)),
-  warn: (message, fields) => console.warn(format('warn', message, fields)),
+  info: (message, fields) => {
+    if (shouldLog('info')) {
+      console.log(format('info', message, fields));
+    }
+  },
+  warn: (message, fields) => {
+    if (shouldLog('warn')) {
+      console.warn(format('warn', message, fields));
+    }
+  },
 };
 
 export const requestLogger = (request, response, next) => {
@@ -24,7 +49,7 @@ export const requestLogger = (request, response, next) => {
   request.id = requestId;
   response.setHeader('x-request-id', requestId);
 
-  logger.info('request.start', {
+  logger.debug('request.start', {
     method: request.method,
     path: request.originalUrl,
     requestId,
@@ -33,7 +58,7 @@ export const requestLogger = (request, response, next) => {
   response.on('finish', () => {
     const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
 
-    logger.info('request.finish', {
+    logger.debug('request.finish', {
       durationMs: Number(durationMs.toFixed(2)),
       method: request.method,
       path: request.originalUrl,

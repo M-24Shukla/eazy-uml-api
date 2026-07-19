@@ -186,7 +186,7 @@ export const listWorkspace = async (request, response, next) => {
       grants: grantsResult.data.map(mapGrant),
     });
 
-    logger.info('workspace.list.success', {
+    logger.debug('workspace.list.success', {
       artifactCount: artifactsResult.data.length,
       grantCount: grantsResult.data.length,
       projectCount: projectsResult.data.length,
@@ -235,7 +235,7 @@ export const createProject = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('project.create.success', {
+    logger.debug('project.create.success', {
       projectId: data.id,
       requestId: request.id,
       userId: appUser.id,
@@ -280,7 +280,7 @@ export const updateProject = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('project.update.success', {
+    logger.debug('project.update.success', {
       projectId: data.id,
       requestId: request.id,
       userId: appUser.id,
@@ -310,7 +310,7 @@ export const deleteProject = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('project.delete.success', {
+    logger.debug('project.delete.success', {
       projectId: request.params.projectId,
       requestId: request.id,
       userId: appUser.id,
@@ -402,7 +402,7 @@ export const saveArtifact = async (request, response, next) => {
       throw error;
     }
 
-    logger.info('artifact.save.success', {
+    logger.debug('artifact.save.success', {
       artifactId: data.id,
       isUpdate: Boolean(request.body.artifactId),
       projectId: data.project_id,
@@ -433,7 +433,7 @@ export const deleteArtifact = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('artifact.delete.success', {
+    logger.debug('artifact.delete.success', {
       artifactId: request.params.artifactId,
       requestId: request.id,
       userId: appUser.id,
@@ -478,7 +478,7 @@ export const createArtifactShareLink = async (request, response, next) => {
     }
 
     if (existing.share_token) {
-      logger.info('artifact.share.create.reused', {
+      logger.debug('artifact.share.create.reused', {
         artifactId: existing.id,
         requestId: request.id,
         tokenPrefix: tokenPrefix(existing.share_token),
@@ -520,7 +520,7 @@ export const createArtifactShareLink = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('artifact.share.create.success', {
+    logger.debug('artifact.share.create.success', {
       artifactId: data.id,
       requestId: request.id,
       tokenPrefix: tokenPrefix(data.share_token),
@@ -554,7 +554,7 @@ export const revokeArtifactShareLink = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('artifact.share.revoke.success', {
+    logger.debug('artifact.share.revoke.success', {
       artifactId: data.id,
       requestId: request.id,
       userId: appUser.id,
@@ -609,7 +609,7 @@ export const addProjectGrant = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('project.grant.upsert.success', {
+    logger.debug('project.grant.upsert.success', {
       access: data.access,
       grantId: data.id,
       projectId: data.project_id,
@@ -660,7 +660,7 @@ export const revokeProjectGrant = async (request, response, next) => {
 
     if (error) throw error;
 
-    logger.info('project.grant.revoke.success', {
+    logger.debug('project.grant.revoke.success', {
       grantId: request.params.grantId,
       requestId: request.id,
       userId: appUser.id,
@@ -677,7 +677,7 @@ export const getSharedArtifact = async (request, response, next) => {
     const db = requireSupabase();
     const shareToken = normalizeText(request.params.shareToken);
 
-    logger.info('shared.artifact.lookup.start', {
+    logger.debug('shared.artifact.lookup.start', {
       requestId: request.id,
       tokenPrefix: tokenPrefix(shareToken),
     });
@@ -702,7 +702,7 @@ export const getSharedArtifact = async (request, response, next) => {
       return;
     }
 
-    logger.info('shared.artifact.lookup.success', {
+    logger.debug('shared.artifact.lookup.success', {
       artifactId: data.id,
       projectId: data.project_id,
       requestId: request.id,
@@ -720,7 +720,7 @@ export const getSharedProject = async (request, response, next) => {
     const db = requireSupabase();
     const shareToken = normalizeText(request.params.shareToken);
 
-    logger.info('shared.project.lookup.start', {
+    logger.debug('shared.project.lookup.start', {
       requestId: request.id,
       tokenPrefix: tokenPrefix(shareToken),
     });
@@ -805,7 +805,7 @@ export const getSharedProject = async (request, response, next) => {
 
     if (artifactsError) throw artifactsError;
 
-    logger.info('shared.project.lookup.success', {
+    logger.debug('shared.project.lookup.success', {
       access,
       artifactCount: artifacts.length,
       projectId: project.id,

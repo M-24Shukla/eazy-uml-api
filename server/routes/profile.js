@@ -20,7 +20,7 @@ export const ensureUserProfile = async (request, response, next) => {
     const clerkUser = await clerkClient.users.getUser(request.auth.userId);
     const email = clerkUser.primaryEmailAddress?.emailAddress;
 
-    logger.info('profile.sync.start', {
+    logger.debug('profile.sync.start', {
       clerkUserId: request.auth.userId,
       requestId: request.id,
     });
@@ -56,7 +56,7 @@ export const ensureUserProfile = async (request, response, next) => {
       throw error;
     }
 
-    logger.info('profile.sync.success', {
+    logger.debug('profile.sync.success', {
       appUserId: data.id,
       clerkUserId: request.auth.userId,
       requestId: request.id,
@@ -94,7 +94,7 @@ export const getUserProfile = async (request, response, next) => {
       return;
     }
 
-    logger.info('profile.get.success', {
+    logger.debug('profile.get.success', {
       appUserId: data.id,
       clerkUserId: request.auth.userId,
       requestId: request.id,
@@ -134,7 +134,7 @@ export const updateUserProfile = async (request, response, next) => {
       throw error;
     }
 
-    logger.info('profile.update.success', {
+    logger.debug('profile.update.success', {
       appUserId: data.id,
       clerkUserId: request.auth.userId,
       requestId: request.id,
